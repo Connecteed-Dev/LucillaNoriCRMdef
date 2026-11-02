@@ -56,3 +56,5 @@ export const MODE_LABELS: Record<string, string> = {
 };
 
 export const INVITE_TTL_DAYS = 7;
+/** Validità del link di recupero password. */
+export const RESET_TTL_MINUTES = 60;

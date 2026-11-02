@@ -70,6 +70,7 @@ L'interfaccia segue il pacchetto `../LN_Studio_Pacchetto_UIUX` (tavole e prototi
 - Permessi: `scripts/collaudo/permessi.ts` prova 40 pagine e API con 6 utenze (anonimo, 2 allieve, 2 docenti, admin). Esito: 240 verifiche su 240.
 - Intestazioni di sicurezza attive: CSP, HSTS, X-Frame-Options, Referrer-Policy, nosniff; `X-Powered-By` disattivato.
 - Login: massimo 5 tentativi falliti per email e 20 per IP ogni 15 minuti; i tentativi falliti finiscono nel registro operazioni.
+- Recupero password: "Password dimenticata?" nella pagina di accesso (`/password-dimenticata`) invia un link monouso valido 60 minuti; stesso messaggio che l'email esista o no; massimo 3 richieste per email e 10 per IP all'ora. Richiede l'invio email (`SMTP_URL`). Le sessioni già aperte su altri dispositivi restano valide fino alla scadenza (7 giorni).
 - Email: invio reale via SMTP con 3 tentativi e allegati (inviti calendario `.ics`). Senza `SMTP_URL`, in produzione le email non vengono segnate come inviate e la docente vede un avviso.
 
 ### Pubblicazione su Dokploy

@@ -46,15 +46,15 @@ export function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
-/** Crea un invito monouso; restituisce il link in chiaro (il DB conserva solo l'hash). */
-export async function createInvite(userId: string) {
+/** Crea un invito monouso; restituisce il link in chiaro (il DB conserva solo l'hash). Usato anche per il recupero password. */
+export async function createInvite(userId: string, ttlMs = INVITE_TTL_DAYS * 86400_000) {
   const token = randomBytes(32).toString("base64url");
   await db.invite.updateMany({ where: { userId, usedAt: null }, data: { expiresAt: new Date() } });
   await db.invite.create({
     data: {
       userId,
       tokenHash: hashToken(token),
-      expiresAt: new Date(Date.now() + INVITE_TTL_DAYS * 86400_000),
+      expiresAt: new Date(Date.now() + ttlMs),
     },
   });
   return `${process.env.APP_URL ?? "http://localhost:3000"}/invito/${token}`;
