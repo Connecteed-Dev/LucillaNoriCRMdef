@@ -179,12 +179,41 @@ export async function planLesson(_: ActionState, form: FormData): Promise<Action
 }
 
 /** Iscrizione: il form contiene editionId e studentId (usato da dossier allieva e pagina edizione). */
+/**
+ * Iscrizione dalla scheda allieva o dall'edizione.
+ * editionId = "new:<courseTypeId>" crea un percorso individuale di quella tipologia (come la conversione del preventivo)
+ * intestato alla docente dell'allieva; "Prima lezione" facoltativa, le successive a cadenza settimanale.
+ */
 export async function enrollStudent(form: FormData) {
   const user = await requireStaff();
-  const editionId = String(form.get("editionId") ?? "");
-  await getEditionForStaff(user, editionId);
   const studentId = String(form.get("studentId") ?? "");
-  await getStudentForStaff(user, studentId);
+  const student = await getStudentForStaff(user, studentId);
+  let editionId = String(form.get("editionId") ?? "");
+  if (editionId.startsWith("new:")) {
+    const ct = await db.courseType.findUnique({ where: { id: editionId.slice(4) } });
+    if (!ct || ct.status !== "ACTIVE") return;
+    const start = form.get("startDate") ? new Date(String(form.get("startDate"))) : null;
+    const edition = await db.courseEdition.create({
+      data: {
+        courseTypeId: ct.id,
+        teacherId: student.teacherId,
+        title: `${ct.title} · ${student.firstName} ${student.lastName}`,
+        status: "PLANNED",
+        startDate: start,
+        lessons: {
+          create: Array.from({ length: Math.min(50, ct.durationLessons ?? 0) }, (_, i) => ({
+            number: i + 1,
+            durationMin: 60,
+            date: start ? new Date(start.getTime() + i * 7 * 86400_000) : null,
+          })),
+        },
+      },
+    });
+    await audit(user.id, "edition.create", "CourseEdition", edition.id);
+    editionId = edition.id;
+  } else {
+    await getEditionForStaff(user, editionId);
+  }
   await db.enrollment.upsert({
     where: { studentId_editionId: { studentId, editionId } },
     update: {},

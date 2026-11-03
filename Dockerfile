@@ -11,9 +11,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npx prisma generate && npm run build
 
 FROM node:20-bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends openssl tzdata && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 DATABASE_URL=file:/app/data/ln.db
+# Orari di lezioni e calendari sono interpretati nel fuso del server: deve essere quello della scuola
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 DATABASE_URL=file:/app/data/ln.db TZ=Europe/Rome
 # node_modules completo: servono prisma (migrazioni) e tsx (seed del catalogo, scripts/crea-utente.ts)
 COPY --from=build /app/package.json /app/package-lock.json /app/next.config.ts /app/tsconfig.json ./
 COPY --from=build /app/node_modules ./node_modules

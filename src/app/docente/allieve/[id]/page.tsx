@@ -271,19 +271,39 @@ export default async function StudentDossier({ params, searchParams }: { params:
 }
 
 async function EnrollForm({ studentId, user }: { studentId: string; user: CurrentUser }) {
-  const editions = await db.courseEdition.findMany({
-    where: { ...editionScope(user), status: { in: ["PLANNED", "RUNNING"] }, enrollments: { none: { studentId } } },
-    include: { courseType: true },
-  });
-  if (!editions.length) return null;
+  const [editions, types] = await Promise.all([
+    db.courseEdition.findMany({
+      where: { ...editionScope(user), status: { in: ["PLANNED", "RUNNING"] }, enrollments: { none: { studentId } } },
+      include: { courseType: true },
+    }),
+    db.courseType.findMany({ where: { status: "ACTIVE" }, orderBy: { title: "asc" } }),
+  ]);
+  if (!editions.length && !types.length) return null;
   return (
     <Card>
-      <PanelTitle title="Iscrivi a un percorso" />
-      <form action={enrollStudent} className="flex flex-wrap gap-2">
+      <PanelTitle title="Iscrivi a un corso" />
+      <form action={enrollStudent} className="space-y-3">
         <input type="hidden" name="studentId" value={studentId} />
-        <select name="editionId" className="input max-w-md flex-1" aria-label="Edizione">
-          {editions.map((e) => <option key={e.id} value={e.id}>{e.title} ({e.courseType.title})</option>)}
-        </select>
+        <label className="block">
+          <span className="label">Corso</span>
+          <select name="editionId" className="input" required>
+            {types.length > 0 && (
+              <optgroup label="Nuovo percorso individuale">
+                {types.map((t) => <option key={t.id} value={`new:${t.id}`}>{t.title}{t.durationLessons ? ` · ${t.durationLessons} lezioni` : ""}</option>)}
+              </optgroup>
+            )}
+            {editions.length > 0 && (
+              <optgroup label="Edizioni aperte">
+                {editions.map((e) => <option key={e.id} value={e.id}>{e.title} ({e.courseType.title})</option>)}
+              </optgroup>
+            )}
+          </select>
+        </label>
+        <label className="block">
+          <span className="label">Prima lezione</span>
+          <input className="input" type="datetime-local" name="startDate" />
+          <span className="mt-1 block text-xs text-muted">Facoltativa, solo per un nuovo percorso: le lezioni successive vengono fissate ogni settimana alla stessa ora.</span>
+        </label>
         <Button variant="secondary" icon="plus">Iscrivi</Button>
       </form>
     </Card>
