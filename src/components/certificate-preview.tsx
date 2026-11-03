@@ -16,7 +16,7 @@ export function CertificatePreview({ name, course, period, hours, number, issuer
             <div className="mx-auto min-w-[62%] max-w-[80%] border-b border-[#e9cfd1] pb-1 font-serif text-lg sm:text-[34px]">{name}</div>
             <p className="mt-1 font-serif text-[9px] italic text-[#867a74] sm:text-[13px]">ha partecipato al percorso</p>
             <div className="font-serif text-sm text-wine sm:text-[21px]">« {course} »</div>
-            {(period || hours) && <div className="mt-1 text-[8px] sm:text-[11px]">{[period, hours ? `${hours.toLocaleString("it-IT")} ore di lezione` : null].filter(Boolean).join(" · ")}</div>}
+            {(period || hours) && <div className="mt-1 text-[8px] sm:text-[11px]">{[period, hours ? `${hours.toLocaleString("it-IT")} ${hours === 1 ? "ora" : "ore"} di lezione` : null].filter(Boolean).join(" · ")}</div>}
           </div>
           <div className="flex w-[92%] items-end justify-between text-left text-[7px] sm:text-[10px]">
             <div>Attestato n. {number}<br />Data: {date}</div>

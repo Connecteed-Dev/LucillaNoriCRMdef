@@ -50,7 +50,7 @@ export async function renderCertificatePdf(cert: Certificate, issuerName: string
     cert.periodFrom && cert.periodTo && fmt(cert.periodFrom) !== fmt(cert.periodTo)
       ? `dal ${fmt(cert.periodFrom)} al ${fmt(cert.periodTo)}`
       : cert.periodFrom ? `in data ${fmt(cert.periodFrom)}` : "";
-  const hours = cert.hours ? ` · ${cert.hours.toLocaleString("it-IT", { maximumFractionDigits: 1 })} ore di lezione` : "";
+  const hours = cert.hours ? ` · ${cert.hours.toLocaleString("it-IT", { maximumFractionDigits: 1 })} ${cert.hours === 1 ? "ora" : "ore"} di lezione` : "";
   if (period || hours) center(`${period}${hours}`, 225, serif, 13, INK);
 
   // Firma e dati
