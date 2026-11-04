@@ -1,6 +1,6 @@
 # Immagine di produzione per Dokploy (build type "Dockerfile").
 # Il database SQLite vive nel volume /app/data: montarlo in Dokploy, altrimenti i dati si perdono a ogni deploy.
-FROM node:20-bookworm-slim AS build
+FROM node:22-bookworm-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -10,7 +10,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npx prisma generate && npm run build
 
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends openssl tzdata && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 # Orari di lezioni e calendari sono interpretati nel fuso del server: deve essere quello della scuola
