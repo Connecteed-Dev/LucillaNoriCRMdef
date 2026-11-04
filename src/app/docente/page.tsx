@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireStaff, studentScope, editionScope } from "@/lib/auth";
-import { enrollmentWhereForStaff } from "@/lib/guards";
+import { certificateWhereForStaff, enrollmentWhereForStaff } from "@/lib/guards";
 import { addDays, capitalize, relativeDay, shortName, startOfDay } from "@/lib/dates";
 import { euro } from "@/lib/quote";
 import { ActivityItem, Badge, ButtonLink, Card, DateBox, Empty, PageHeader, PanelTitle, Stat, fmtTime } from "@/components/ui";
@@ -26,8 +26,8 @@ export default async function Dashboard() {
       orderBy: { submittedAt: "desc" },
     }),
     db.assignment.count({ where: { enrollment: scope, status: { in: ["SENT", "OPENED", "IN_PROGRESS"] }, version: { template: { audience: "STUDENT" } } } }),
-    db.certificate.count({ where: { enrollment: scope, revokedAt: null } }),
-    db.certificate.count({ where: { enrollment: scope, revokedAt: null, issuedAt: { gte: monthStart } } }),
+    db.certificate.count({ where: { ...certificateWhereForStaff(user), revokedAt: null } }),
+    db.certificate.count({ where: { ...certificateWhereForStaff(user), revokedAt: null, issuedAt: { gte: monthStart } } }),
     db.lesson.findMany({
       where: { edition: { ...editionScope(user), status: { in: ["PLANNED", "RUNNING"] } }, date: { gte: today } },
       include: { edition: { include: { courseType: true, enrollments: { include: { student: true } } } } },

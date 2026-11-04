@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { enrollmentWhereForStaff } from "@/lib/guards";
+import { certificateWhereForStaff } from "@/lib/guards";
 import { ROLES } from "@/lib/constants";
 import { renderCertificatePdf } from "@/lib/certificate-pdf";
 import { audit } from "@/lib/audit";
@@ -14,7 +14,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   const where =
     user.role === ROLES.STUDENT
       ? { id, revokedAt: null, enrollment: { studentId: user.student?.id ?? "-" } }
-      : { id, enrollment: enrollmentWhereForStaff(user) };
+      : { id, ...certificateWhereForStaff(user) };
   const cert = await db.certificate.findFirst({ where });
   if (!cert) return new NextResponse("Non trovato", { status: 404 });
 

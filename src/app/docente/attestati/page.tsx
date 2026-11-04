@@ -1,8 +1,8 @@
 import { db } from "@/lib/db";
 import { requireStaff } from "@/lib/auth";
-import { enrollmentWhereForStaff, getEnrollmentForStaff } from "@/lib/guards";
+import { certificateWhereForStaff, enrollmentWhereForStaff, getEnrollmentForStaff } from "@/lib/guards";
 import { certificateRequirements, nextCertificateNumber } from "@/lib/certificates";
-import { issueCertificate, revokeCertificate } from "@/server/certificates";
+import { issueCertificate, issueManualCertificate, revokeCertificate } from "@/server/certificates";
 import { ActionForm } from "@/components/action-form";
 import { CertificatePreview } from "@/components/certificate-preview";
 import { Icon } from "@/components/icons";
@@ -19,13 +19,14 @@ export default async function CertificatesPage({ searchParams }: { searchParams:
   const { iscrizione } = await searchParams;
   const scope = enrollmentWhereForStaff(user);
 
-  const [candidates, certificates] = await Promise.all([
+  const [candidates, certificates, courseTypes] = await Promise.all([
     db.enrollment.findMany({
       where: { ...scope, certificates: { none: { revokedAt: null } }, status: { not: "INTERRUPTED" }, edition: { courseType: { certificateEnabled: true } } },
       include: { student: true, edition: true },
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
     }),
-    db.certificate.findMany({ where: { enrollment: scope }, orderBy: { issuedAt: "desc" } }),
+    db.certificate.findMany({ where: certificateWhereForStaff(user), orderBy: { issuedAt: "desc" } }),
+    db.courseType.findMany({ where: { status: "ACTIVE", certificateEnabled: true }, orderBy: { title: "asc" } }),
   ]);
 
   // Percorso selezionato: quello richiesto, altrimenti il primo completato
@@ -114,6 +115,29 @@ export default async function CertificatesPage({ searchParams }: { searchParams:
         </div>
       </div>
 
+      {courseTypes.length > 0 && (
+        <Card className="mt-5">
+          <PanelTitle title="Attestato inserito a mano" />
+          <p className="-mt-2 mb-4 text-xs text-muted">Per allieve non presenti nel gestionale: nessuna verifica dei requisiti, l’emissione resta tracciata nel registro.</p>
+          <ActionForm action={issueManualCertificate} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.3fr_0.8fr_0.8fr]">
+            <Field label="Nome"><input className="input" name="firstName" required maxLength={80} autoComplete="off" /></Field>
+            <Field label="Cognome"><input className="input" name="lastName" required maxLength={80} autoComplete="off" /></Field>
+            <Field label="Tipo di corso">
+              <select className="input" name="courseTypeId" required defaultValue="">
+                <option value="" disabled>Scegli…</option>
+                {courseTypes.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
+              </select>
+            </Field>
+            <Field label="Data del corso"><input className="input" type="date" name="periodFrom" required /></Field>
+            <Field label="Fino al" hint="Facoltativa"><input className="input" type="date" name="periodTo" /></Field>
+            <div className="flex flex-wrap items-center justify-between gap-3 sm:col-span-2 lg:col-span-5">
+              <label className="flex items-center gap-2.5 text-[13px]"><input type="checkbox" name="confirm" className="h-4 w-4 accent-[var(--color-wine)]" /> Confermo nome, corso e date dell’attestato</label>
+              <Button icon="award">Emetti attestato {nextNumber}</Button>
+            </div>
+          </ActionForm>
+        </Card>
+      )}
+
       <SectionHead title="Archivio attestati" />
       {certificates.length ? (
         <Table head={["Numero", "Allieva", "Corso", "Emissione", "Stato", ""]}>
@@ -122,7 +146,7 @@ export default async function CertificatesPage({ searchParams }: { searchParams:
               <Td className="font-mono text-xs">{c.number}</Td>
               <Td className="font-bold">{c.studentName}</Td>
               <Td>{c.courseTitle}</Td>
-              <Td>{fmtDate(c.issuedAt)}{c.overrideReason && <span className="block text-xs text-warn">Override: {c.overrideReason}</span>}</Td>
+              <Td>{fmtDate(c.issuedAt)}{!c.enrollmentId && <span className="block text-xs text-muted">Inserito a mano</span>}{c.overrideReason && <span className="block text-xs text-warn">Override: {c.overrideReason}</span>}</Td>
               <Td>{c.revokedAt ? <><Badge tone="red">Annullato</Badge><span className="block text-xs text-muted">{c.revokeReason}</span></> : <Badge tone="green">Valido</Badge>}</Td>
               <Td className="text-right">
                 <div className="flex items-center justify-end gap-2">

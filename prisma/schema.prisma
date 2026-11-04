@@ -22,7 +22,7 @@ model User {
   lastLoginAt  DateTime?
 
   student          Student?
-  teacherStudents  Student[]       @relation("TeacherStudents")
+  teacherStudents  Student[]         @relation("TeacherStudents")
   teacherEditions  CourseEdition[]
   invites          Invite[]
   authoredVersions TemplateVersion[]
@@ -87,19 +87,19 @@ model TeacherNote {
 }
 
 model ConsentRecord {
-  id        String   @id @default(cuid())
-  studentId String
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  type      String // PRIVACY | PHYSICAL_DATA | PHOTO | MARKETING
-  granted   Boolean
+  id           String   @id @default(cuid())
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type         String // PRIVACY | PHYSICAL_DATA | PHOTO | MARKETING
+  granted      Boolean
   recordedById String
-  createdAt DateTime @default(now())
+  createdAt    DateTime @default(now())
 }
 
 model CourseType {
-  id                 String          @id @default(cuid())
+  id                 String   @id @default(cuid())
   title              String
-  slug               String          @unique
+  slug               String   @unique
   description        String?
   category           String?
   durationLessons    Int?
@@ -107,13 +107,13 @@ model CourseType {
   prerequisites      String?
   objectives         String?
   program            String?
-  mode               String          @default("INDIVIDUAL") // INDIVIDUAL | GROUP | BOTH
-  certificateEnabled Boolean         @default(true)
+  mode               String   @default("INDIVIDUAL") // INDIVIDUAL | GROUP | BOTH
+  certificateEnabled Boolean  @default(true)
   // Listino per il preventivatore (centesimi di euro)
   packagePriceCents  Int?
   lessonPriceCents   Int?
-  status             String          @default("ACTIVE") // ACTIVE | ARCHIVED
-  createdAt          DateTime        @default(now())
+  status             String   @default("ACTIVE") // ACTIVE | ARCHIVED
+  createdAt          DateTime @default(now())
 
   editions  CourseEdition[]
   templates QuestionnaireTemplate[]
@@ -121,17 +121,17 @@ model CourseType {
 }
 
 model CourseEdition {
-  id               String       @id @default(cuid())
+  id               String     @id @default(cuid())
   courseTypeId     String
-  courseType       CourseType   @relation(fields: [courseTypeId], references: [id])
+  courseType       CourseType @relation(fields: [courseTypeId], references: [id])
   teacherId        String
-  teacher          User         @relation(fields: [teacherId], references: [id])
+  teacher          User       @relation(fields: [teacherId], references: [id])
   title            String
   startDate        DateTime?
   endDate          DateTime?
-  minAttendancePct Int          @default(80)
-  status           String       @default("PLANNED") // PLANNED | RUNNING | COMPLETED | CANCELLED
-  createdAt        DateTime     @default(now())
+  minAttendancePct Int        @default(80)
+  status           String     @default("PLANNED") // PLANNED | RUNNING | COMPLETED | CANCELLED
+  createdAt        DateTime   @default(now())
 
   lessons     Lesson[]
   enrollments Enrollment[]
@@ -218,58 +218,59 @@ model TemplateVersion {
 }
 
 model Assignment {
-  id           String          @id @default(cuid())
-  versionId    String
-  version      TemplateVersion @relation(fields: [versionId], references: [id])
-  enrollmentId String
-  enrollment   Enrollment      @relation(fields: [enrollmentId], references: [id])
-  lessonId     String?
-  lesson       Lesson?         @relation(fields: [lessonId], references: [id])
-  assignedById String
-  status       String          @default("SENT") // SENT | OPENED | IN_PROGRESS | COMPLETED | EXPIRED
+  id            String          @id @default(cuid())
+  versionId     String
+  version       TemplateVersion @relation(fields: [versionId], references: [id])
+  enrollmentId  String
+  enrollment    Enrollment      @relation(fields: [enrollmentId], references: [id])
+  lessonId      String?
+  lesson        Lesson?         @relation(fields: [lessonId], references: [id])
+  assignedById  String
+  status        String          @default("SENT") // SENT | OPENED | IN_PROGRESS | COMPLETED | EXPIRED
   availableFrom DateTime?
-  dueAt        DateTime?
-  maxAttempts  Int             @default(1)
-  createdAt    DateTime        @default(now())
-  openedAt     DateTime?
+  dueAt         DateTime?
+  maxAttempts   Int             @default(1)
+  createdAt     DateTime        @default(now())
+  openedAt      DateTime?
 
   responses Response[]
 }
 
 model Response {
-  id            String     @id @default(cuid())
-  assignmentId  String
-  assignment    Assignment @relation(fields: [assignmentId], references: [id])
-  attempt       Int        @default(1)
-  respondentId  String // utente che compila (allieva o docente per rubriche)
-  answers       Json // { [itemId]: valore }
-  status        String     @default("DRAFT") // DRAFT | SUBMITTED | REOPENED
-  submittedAt   DateTime?
-  autoScore     Float?
-  maxScore      Float?
-  manualScore   Float?
-  scoreNote     String?
+  id              String     @id @default(cuid())
+  assignmentId    String
+  assignment      Assignment @relation(fields: [assignmentId], references: [id])
+  attempt         Int        @default(1)
+  respondentId    String // utente che compila (allieva o docente per rubriche)
+  answers         Json // { [itemId]: valore }
+  status          String     @default("DRAFT") // DRAFT | SUBMITTED | REOPENED
+  submittedAt     DateTime?
+  autoScore       Float?
+  maxScore        Float?
+  manualScore     Float?
+  scoreNote       String?
   teacherFeedback String?
-  published     Boolean    @default(false)
-  publishedAt   DateTime?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  published       Boolean    @default(false)
+  publishedAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
   @@unique([assignmentId, attempt])
 }
 
 model Certificate {
-  id             String     @id @default(cuid())
-  number         String     @unique
-  enrollmentId   String
-  enrollment     Enrollment @relation(fields: [enrollmentId], references: [id])
-  title          String     @default("Attestato di partecipazione")
+  id             String      @id @default(cuid())
+  number         String      @unique
+  // Vuoto per gli attestati inseriti a mano (allieve non presenti nel gestionale)
+  enrollmentId   String?
+  enrollment     Enrollment? @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
+  title          String      @default("Attestato di partecipazione")
   courseTitle    String
   studentName    String
   periodFrom     DateTime?
   periodTo       DateTime?
   hours          Float?
-  issuedAt       DateTime   @default(now())
+  issuedAt       DateTime    @default(now())
   issuedById     String
   overrideReason String?
   revokedAt      DateTime?
@@ -300,39 +301,39 @@ model AuditLog {
 // Preventivo inviato a una potenziale allieva, accettabile tramite link monouso.
 // Importi in centesimi; i totali sono sempre ricalcolati lato server (src/lib/quote.ts).
 model Quote {
-  id               String      @id @default(cuid())
-  number           String      @unique
-  teacherId        String
-  teacher          User        @relation(fields: [teacherId], references: [id])
-  courseTypeId     String
-  courseType       CourseType  @relation(fields: [courseTypeId], references: [id])
-  studentId        String?
-  student          Student?    @relation(fields: [studentId], references: [id])
+  id                String     @id @default(cuid())
+  number            String     @unique
+  teacherId         String
+  teacher           User       @relation(fields: [teacherId], references: [id])
+  courseTypeId      String
+  courseType        CourseType @relation(fields: [courseTypeId], references: [id])
+  studentId         String?
+  student           Student?   @relation(fields: [studentId], references: [id])
   prospectFirstName String
-  prospectLastName String
-  prospectEmail    String
-  prospectPhone    String?
-  lessons          Int
-  lessonMinutes    Int         @default(60)
-  lines            Json // [{ label, qty, unitCents }]
-  discountPct      Float       @default(0)
-  vatRate          Float       @default(0)
-  subtotalCents    Int
-  discountCents    Int
-  vatCents         Int
-  totalCents       Int
-  notes            String?
-  validUntil       DateTime
-  status           String      @default("DRAFT") // DRAFT | SENT | ACCEPTED | DECLINED | CANCELLED
-  tokenHash        String?     @unique
-  sentAt           DateTime?
-  viewedAt         DateTime?
-  acceptedAt       DateTime?
-  acceptedName     String?
-  acceptedIp       String?
-  declinedAt       DateTime?
-  declineReason    String?
-  editionId        String?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  prospectLastName  String
+  prospectEmail     String
+  prospectPhone     String?
+  lessons           Int
+  lessonMinutes     Int        @default(60)
+  lines             Json // [{ label, qty, unitCents }]
+  discountPct       Float      @default(0)
+  vatRate           Float      @default(0)
+  subtotalCents     Int
+  discountCents     Int
+  vatCents          Int
+  totalCents        Int
+  notes             String?
+  validUntil        DateTime
+  status            String     @default("DRAFT") // DRAFT | SENT | ACCEPTED | DECLINED | CANCELLED
+  tokenHash         String?    @unique
+  sentAt            DateTime?
+  viewedAt          DateTime?
+  acceptedAt        DateTime?
+  acceptedName      String?
+  acceptedIp        String?
+  declinedAt        DateTime?
+  declineReason     String?
+  editionId         String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 }

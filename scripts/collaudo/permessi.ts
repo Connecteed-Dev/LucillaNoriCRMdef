@@ -31,6 +31,7 @@ async function main() {
   const a2 = await db.assignment.findFirstOrThrow({ where: { enrollmentId: e2.id } });
   const l1 = await db.lesson.findFirstOrThrow({ where: { editionId: e1.editionId, date: { not: null } } });
   const cert = await db.certificate.findFirstOrThrow({ where: { enrollmentId: e1.id } });
+  const manualCert = await db.certificate.findFirstOrThrow({ where: { number: "LN-2026-9002" } });
   const quote = await db.quote.findFirstOrThrow({ where: { number: "PREV-2026-9001" } });
   const tpl = await db.questionnaireTemplate.findFirstOrThrow();
   const ct = await db.courseType.findFirstOrThrow();
@@ -71,6 +72,7 @@ async function main() {
     { name: "Questionario allieva 1", path: `/allieva/questionari/${a1.id}`, expect: { ...studentOnly, allieva2: 404 } },
     { name: "Questionario allieva 2", path: `/allieva/questionari/${a2.id}`, expect: { ...studentOnly, allieva: 404 } },
     { name: "PDF attestato", path: `/api/attestati/${cert.id}`, expect: { anonimo: "login", allieva: 200, allieva2: 404, docente: 200, docente2: 404, admin: 200 } },
+    { name: "PDF attestato manuale", path: `/api/attestati/${manualCert.id}`, expect: { anonimo: "login", allieva: 404, allieva2: 404, docente: 200, docente2: 404, admin: 200 } },
     { name: "ICS lezione senza firma", path: `/api/calendario/lezione/${l1.id}.ics`, expect: { default: 403 } },
     { name: "ICS lezione firmato", path: `/api/calendario/lezione/${l1.id}.ics?sig=${sign("lesson", l1.id)}`, expect: { default: { status: 200, contains: "BEGIN:VCALENDAR" } } },
     { name: "ICS firma di altra lezione", path: `/api/calendario/lezione/${l1.id}.ics?sig=${sign("lesson", "altro")}`, expect: { default: 403 } },

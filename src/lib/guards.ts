@@ -1,5 +1,6 @@
 import "server-only";
 import { notFound } from "next/navigation";
+import type { Prisma } from "@prisma/client";
 import { db } from "./db";
 import { ROLES } from "./constants";
 import type { CurrentUser } from "./auth";
@@ -9,6 +10,12 @@ import type { CurrentUser } from "./auth";
 export function enrollmentWhereForStaff(user: CurrentUser) {
   if (user.role === ROLES.ADMIN) return {};
   return { OR: [{ edition: { teacherId: user.id } }, { student: { teacherId: user.id } }] };
+}
+
+/** Attestati visibili allo staff: quelli dei propri percorsi, più quelli inseriti a mano dalla stessa docente. */
+export function certificateWhereForStaff(user: CurrentUser): Prisma.CertificateWhereInput {
+  if (user.role === ROLES.ADMIN) return {};
+  return { OR: [{ enrollment: enrollmentWhereForStaff(user) }, { enrollmentId: null, issuedById: user.id }] };
 }
 
 export async function getEnrollmentForStaff(user: CurrentUser, enrollmentId: string) {

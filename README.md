@@ -34,7 +34,7 @@ In sviluppo le email (inviti, notifiche) vengono salvate nella tabella `Notifica
 | 6 | Libreria iniziale dai 7 allegati unici (`prisma/library.ts`), **solo struttura, senza i dati compilati** | ✅ |
 | 7 | Area allieva mobile: form a sezioni, progress bar, bozza, riepilogo, invio, dashboard | ✅ |
 | 8 | Punteggio automatico, revisione tracciata, pubblicazione separata, confronto prima/dopo per domande equivalenti | ✅ (report PDF: P1) |
-| 9 | Attestato PDF con verifica requisiti, override motivato, annullamento | ✅ (QR di verifica: P2) |
+| 9 | Attestato PDF con verifica requisiti, override motivato, annullamento; attestato inserito a mano (nome, cognome, tipo di corso, date) | ✅ (QR di verifica: P2) |
 | 10 | Dashboard e navigazione docente | ✅ |
 | 12 | Inviti scaduti/rinnovo, proroga, sollecito, riapertura, cambio email, revoca accesso | ✅ |
 | 13 | Audit log, cookie di sessione firmati, password hashate, token d'invito salvati solo come hash | ✅ base |

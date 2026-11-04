@@ -37,12 +37,17 @@ async function main() {
     await db.assignment.create({ data: { versionId: quiz.id, enrollmentId: en2.id, assignedById: teacher2.id } });
   }
 
-  // Attestato e preventivo della prima docente (per l'allieva demo)
+  // Attestati (uno da percorso, uno inserito a mano) e preventivo della prima docente
   const demo = await db.student.findFirstOrThrow({ where: { email: "allieva.demo@ln.local" } });
   const en1 = await db.enrollment.findFirstOrThrow({ where: { studentId: demo.id } });
   if (!(await db.certificate.findFirst({ where: { enrollmentId: en1.id } }))) {
     await db.certificate.create({
       data: { number: "LN-2026-9001", enrollmentId: en1.id, courseTitle: "Stile e Portamento", studentName: "Allieva Demo", issuedById: teacher1.id, overrideReason: "Collaudo" },
+    });
+  }
+  if (!(await db.certificate.findFirst({ where: { number: "LN-2026-9002" } }))) {
+    await db.certificate.create({
+      data: { number: "LN-2026-9002", courseTitle: "Stile e Portamento", studentName: "Esterna Collaudo", periodFrom: new Date(), periodTo: new Date(), issuedById: teacher1.id },
     });
   }
   if (!(await db.quote.findFirst({ where: { number: "PREV-2026-9001" } }))) {
